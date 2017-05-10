@@ -12,11 +12,15 @@ import AVFoundation
 class VideoRangeSelector: UIView {
   
   // MARK: Components
+  public weak var previewView: VideoRangeSelectorPlayerView?
+
   fileprivate var scrollView: UIScrollView!
   fileprivate var reelImageView: UIImageView!
   fileprivate var rangeRectangleView: UIView!
   fileprivate var rangeHandle: EasyTouchView!
   fileprivate var indicatorView: UIActivityIndicatorView!
+  
+  fileprivate var player: AVPlayer?
   
   // MARK: Params
   let rangeRectangleMargin: CGFloat = 20
@@ -29,8 +33,12 @@ class VideoRangeSelector: UIView {
   let rangeHandleSlitMargin: CGFloat = 15
   let reelFrameWidth: CGFloat = 40
   
-  let pxPerSec: CGFloat = 15
+  let pxPerSec: CGFloat = 15 / 1
+  let secPerPx: CGFloat = 1 / 15
   let minSec: Float = 3
+  
+  public var rangeBegin: CMTime?
+  public var rangeEnd: CMTime?
   
   public var asset: AVAsset? {
     willSet {
@@ -38,6 +46,7 @@ class VideoRangeSelector: UIView {
     }
     didSet {
       setAsset()
+      play()
     }
   }
   
@@ -115,7 +124,6 @@ class VideoRangeSelector: UIView {
     guard let asset = asset else { return }
 
     indicatorView.startAnimating()
-//    indicatorView.isHidden = false
 
     DispatchQueue.global(qos: .default).async { [unowned self] in
       let reelSize = CGSize(width: self.reelWidth() * UIScreen.main.scale,
@@ -136,12 +144,21 @@ class VideoRangeSelector: UIView {
     }
   }
   
+  func play() {
+    guard let asset = asset else { return }
+    guard let previewView = previewView else { return }
+    
+    player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
+    previewView.playerLayer.player = player
+    player?.play()
+  }
+  
   
   func panHandle(_ sender: UIPanGestureRecognizer) {
     moveHandle(sender.location(in: self).x)
   }
   
-  private func moveHandle(_ x: CGFloat) {
+  fileprivate func moveHandle(_ x: CGFloat) {
     var distX = x
     let minX = (CGFloat(minSec) * pxPerSec) + rangeRectangleMargin
     let maxX = min(self.bounds.width - rangeRectangleMargin - rangeHandleWidth,
@@ -157,9 +174,16 @@ class VideoRangeSelector: UIView {
     scrollView.contentInset = UIEdgeInsetsMake(0, rangeRectangleMargin, 0, self.bounds.width - distX)
   }
   
-  private func reelWidth() -> CGFloat {
+  fileprivate func reelWidth() -> CGFloat {
     guard let asset = asset else { return 0 }
     return CGFloat(asset.duration.seconds) * pxPerSec
+  }
+  
+  fileprivate func seek(_ x: CGFloat) {
+    guard let _ = asset else { return }
+    let time = CMTimeMakeWithSeconds(Double(x * secPerPx), Int32(NSEC_PER_SEC))
+    
+    player?.seek(to: time, toleranceBefore: kCMTimeZero, toleranceAfter:  kCMTimeZero)
   }
   
 }
@@ -168,15 +192,24 @@ class VideoRangeSelector: UIView {
 extension VideoRangeSelector: UIScrollViewDelegate {
   
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    var x = scrollView.contentOffset.x + scrollView.contentInset.left
+    x = x < 0 ? 0 : x
+    print(x)
+    seek(x)
   }
   
   func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    player?.play()
   }
   
   func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
+    player?.pause()
   }
   
   func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    if !decelerate {
+      player?.play()
+    }
   }
 }
 
@@ -192,75 +225,4 @@ class EasyTouchView: UIView {
     
     return rect.contains(point)
   }
-}
-
-class ReelImageGenerator {
-
-  let asset: AVAsset
-  let generator: AVAssetImageGenerator
-  var backgroundColor = UIColor.clear
-  
-  init(_ asset: AVAsset){
-    self.asset = asset
-    generator = AVAssetImageGenerator(asset: asset)
-    generator.appliesPreferredTrackTransform = true
-//    generator.requestedTimeToleranceAfter = kCMTimeZero;
-//    generator.requestedTimeToleranceBefore = kCMTimeZero;
-  }
-
-  func reelImage(size: CGSize, frameWidth: CGFloat) -> UIImage {
-    let frameSize = CGSize(width: frameWidth, height: size.height)
-    let frameCount = Int((size.width / frameWidth).rounded(.up))
-    let secPerFrame = asset.duration.seconds / Double(frameCount)
-    let times:[CMTime] = (0..<frameCount).map { CMTimeMakeWithSeconds(Double($0) * secPerFrame, 1) }
-    let images:[UIImage] = times.map { thumbnail($0, size: frameSize) }
-    
-    UIGraphicsBeginImageContext(size)
-    var x: CGFloat = 0
-    for image in images {
-      image.draw(in: CGRect(origin: CGPoint(x: x, y: 0), size: frameSize))
-      x += frameWidth
-    }
-    let image = UIGraphicsGetImageFromCurrentImageContext()!
-    UIGraphicsEndImageContext()
-    return image
-  }
-  
-  private func thumbnail(_ time: CMTime, size: CGSize) -> UIImage {
-    let cgimage: CGImage
-    do {
-      cgimage = try generator.copyCGImage(at: time, actualTime: nil)
-    } catch {
-      UIGraphicsBeginImageContext(size)
-      let context = UIGraphicsGetCurrentContext()!
-      context.setFillColor(backgroundColor.cgColor)
-      context.fill(CGRect(origin: .zero, size: size))
-      let outputImage = UIGraphicsGetImageFromCurrentImageContext()!
-      UIGraphicsEndImageContext()
-      return outputImage
-    }
-    
-    let image = UIImage(cgImage: cgimage)
-    
-    let outputWidthRatio = size.width / size.height
-    let imageWidthRatio = image.size.width / image.size.height
-    var drawSize: CGSize = size
-    var drawPoint: CGPoint = .zero
-    if outputWidthRatio < imageWidthRatio {
-      // キャプチャ画像より出力画像のほうが縦長い
-      drawSize = CGSize(width: imageWidthRatio * size.height, height: size.height)
-      drawPoint = CGPoint(x: (size.width - drawSize.width) / 2, y: 0)
-    } else {
-      // キャプチャ画像より出力画像のほうが横長い
-      drawSize = CGSize(width: size.width, height: size.width / imageWidthRatio)
-      drawPoint = CGPoint(x: 0, y: (size.height - drawSize.height) / 2)
-    }
-
-    UIGraphicsBeginImageContext(size)
-    image.draw(in: CGRect(origin: drawPoint, size: drawSize) )
-    let thumbnail = UIGraphicsGetImageFromCurrentImageContext()!
-    UIGraphicsEndImageContext()
-    return thumbnail
-  }
-  
 }

@@ -14,6 +14,7 @@ class ViewController: UIViewController {
 
   @IBOutlet weak var rangeSelector: VideoRangeSelector!
   @IBOutlet weak var selectButton: UIButton!
+  @IBOutlet weak var previewView: VideoRangeSelectorPlayerView!
   
   fileprivate let imagePickerController = UIImagePickerController()
   
@@ -25,6 +26,11 @@ class ViewController: UIViewController {
   override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
     // Dispose of any resources that can be recreated.
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    rangeSelector.previewView = previewView
   }
 
   @IBAction func selectVideo(_ sender: AnyObject) {

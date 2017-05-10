@@ -21,6 +21,10 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="QPU-VP-bdh" customClass="VideoRangeSelectorPlayerView" customModule="VideoRangeSelector" customModuleProvider="target">
+                                <rect key="frame" x="30" y="50" width="315" height="487"/>
+                                <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="NvL-ye-1wA" customClass="VideoRangeSelector" customModule="VideoRangeSelector" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="567" width="375" height="70"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -29,7 +33,7 @@
                                 </constraints>
                             </view>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lHG-Yh-IGQ">
-                                <rect key="frame" x="165" y="318" width="44" height="30"/>
+                                <rect key="frame" x="165" y="637" width="44" height="30"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Select"/>
                                 <connections>
@@ -39,18 +43,24 @@
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
+                            <constraint firstItem="NvL-ye-1wA" firstAttribute="top" secondItem="QPU-VP-bdh" secondAttribute="bottom" constant="30" id="CAL-77-9Hk"/>
                             <constraint firstAttribute="trailing" secondItem="NvL-ye-1wA" secondAttribute="trailing" id="FSq-Zj-YDe"/>
+                            <constraint firstItem="QPU-VP-bdh" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" constant="30" id="Jpd-Qs-deM"/>
+                            <constraint firstAttribute="trailing" secondItem="QPU-VP-bdh" secondAttribute="trailing" constant="30" id="LRr-T8-5FD"/>
                             <constraint firstItem="NvL-ye-1wA" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="YHQ-dw-QiQ"/>
+                            <constraint firstItem="QPU-VP-bdh" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" constant="30" id="Ywe-E3-Ejn"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="NvL-ye-1wA" secondAttribute="bottom" constant="30" id="kKV-0W-46E"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="previewView" destination="QPU-VP-bdh" id="uDf-fG-326"/>
                         <outlet property="rangeSelector" destination="NvL-ye-1wA" id="78r-48-822"/>
                         <outlet property="selectButton" destination="lHG-Yh-IGQ" id="wRd-oE-qRR"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
+            <point key="canvasLocation" x="141.59999999999999" y="138.98050974512745"/>
         </scene>
     </scenes>
 </document>

@@ -15,6 +15,8 @@
 		BB2A1E9A1EC1913E0083DFDC /* VideoRangeSelectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2A1E991EC1913E0083DFDC /* VideoRangeSelectorTests.swift */; };
 		BB2A1EA51EC1913E0083DFDC /* VideoRangeSelectorUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2A1EA41EC1913E0083DFDC /* VideoRangeSelectorUITests.swift */; };
 		BB2A1EB31EC1A7700083DFDC /* VideoRangeSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2A1EB21EC1A7700083DFDC /* VideoRangeSelector.swift */; };
+		BB87E14B1EC31CED00C3BEA8 /* ReelImageGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB87E14A1EC31CED00C3BEA8 /* ReelImageGenerator.swift */; };
+		BB87E14D1EC31F0F00C3BEA8 /* VideoRangeSelectorPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB87E14C1EC31F0F00C3BEA8 /* VideoRangeSelectorPlayerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +51,8 @@
 		BB2A1EA41EC1913E0083DFDC /* VideoRangeSelectorUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoRangeSelectorUITests.swift; sourceTree = "<group>"; };
 		BB2A1EA61EC1913E0083DFDC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		BB2A1EB21EC1A7700083DFDC /* VideoRangeSelector.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoRangeSelector.swift; sourceTree = "<group>"; };
+		BB87E14A1EC31CED00C3BEA8 /* ReelImageGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ReelImageGenerator.swift; sourceTree = "<group>"; };
+		BB87E14C1EC31F0F00C3BEA8 /* VideoRangeSelectorPlayerView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VideoRangeSelectorPlayerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +107,8 @@
 				BB2A1E861EC1913E0083DFDC /* ViewController.swift */,
 				BB2A1E881EC1913E0083DFDC /* Main.storyboard */,
 				BB2A1EB21EC1A7700083DFDC /* VideoRangeSelector.swift */,
+				BB87E14C1EC31F0F00C3BEA8 /* VideoRangeSelectorPlayerView.swift */,
+				BB87E14A1EC31CED00C3BEA8 /* ReelImageGenerator.swift */,
 				BB2A1E8B1EC1913E0083DFDC /* Assets.xcassets */,
 				BB2A1E8D1EC1913E0083DFDC /* LaunchScreen.storyboard */,
 				BB2A1E901EC1913E0083DFDC /* Info.plist */,
@@ -266,6 +272,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				BB2A1E871EC1913E0083DFDC /* ViewController.swift in Sources */,
+				BB87E14B1EC31CED00C3BEA8 /* ReelImageGenerator.swift in Sources */,
+				BB87E14D1EC31F0F00C3BEA8 /* VideoRangeSelectorPlayerView.swift in Sources */,
 				BB2A1EB31EC1A7700083DFDC /* VideoRangeSelector.swift in Sources */,
 				BB2A1E851EC1913E0083DFDC /* AppDelegate.swift in Sources */,
 			);
