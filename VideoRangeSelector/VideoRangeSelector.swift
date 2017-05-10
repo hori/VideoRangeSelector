@@ -13,10 +13,11 @@ class VideoRangeSelector: UIView {
   
   // MARK: Components
   fileprivate var scrollView: UIScrollView!
-  fileprivate var thumbnailView: UIImageView!
+  fileprivate var reelImageView: UIImageView!
   fileprivate var rangeRectangleView: UIView!
   fileprivate var rangeHandle: EasyTouchView!
-
+  fileprivate var indicatorView: UIActivityIndicatorView!
+  
   // MARK: Params
   let rangeRectangleMargin: CGFloat = 20
   let rangeRectangleBoarderWidth: CGFloat = 2
@@ -26,11 +27,15 @@ class VideoRangeSelector: UIView {
   let rangeHandleSlitColor: UIColor = .darkGray
   let rangeHandleSlitWidth: CGFloat = 4
   let rangeHandleSlitMargin: CGFloat = 15
+  let reelFrameWidth: CGFloat = 40
   
-  let pixPerSec: CGFloat = 15
+  let pxPerSec: CGFloat = 15
   let minSec: Float = 3
   
   public var asset: AVAsset? {
+    willSet {
+      reelImageView.image = nil
+    }
     didSet {
       setAsset()
     }
@@ -53,9 +58,10 @@ class VideoRangeSelector: UIView {
     // scrollView
     scrollView = UIScrollView.init(frame: self.bounds)
     scrollView.delegate = self
-    
-    thumbnailView = UIImageView.init()
-    thumbnailView.contentMode = .topLeft
+    reelImageView = UIImageView.init()
+    reelImageView.contentMode = .topLeft
+    scrollView.addSubview(reelImageView)
+    scrollView.showsHorizontalScrollIndicator = false
     self.addSubview(scrollView)
     
     // range
@@ -66,7 +72,10 @@ class VideoRangeSelector: UIView {
     rangeRectangleView = UIView.init(frame: rectRect)
     rangeRectangleView.layer.borderColor = rangeColor.cgColor
     rangeRectangleView.layer.borderWidth = rangeRectangleBoarderWidth
+    rangeRectangleView.isUserInteractionEnabled = false
+    scrollView.contentInset = UIEdgeInsetsMake(0, rangeRectangleMargin, 0, rangeRectangleMargin)
     self.addSubview(rangeRectangleView)
+
     
     // handle
     let handleRect = CGRect.init(x: self.bounds.width - rangeRectangleMargin - rangeHandleWidth,
@@ -91,30 +100,66 @@ class VideoRangeSelector: UIView {
     // handle guesture
     let guesture = UIPanGestureRecognizer(target: self, action: #selector(panHandle(_:)))
     rangeHandle.addGestureRecognizer(guesture)
+    
+    // indicator
+    indicatorView = UIActivityIndicatorView.init(activityIndicatorStyle: .gray)
+    indicatorView.center = CGPoint(x: self.bounds.width/2, y: self.bounds.height/2)
+    indicatorView.stopAnimating()
+    self.addSubview(indicatorView)
+    self.bringSubview(toFront: indicatorView)
 
   }
 
   
   fileprivate func setAsset() {
-    
+    guard let asset = asset else { return }
+
+    indicatorView.startAnimating()
+//    indicatorView.isHidden = false
+
+    DispatchQueue.global(qos: .default).async { [unowned self] in
+      let reelSize = CGSize(width: self.reelWidth() * UIScreen.main.scale,
+                            height: self.bounds.height * UIScreen.main.scale)
+      let viewSize = CGSize(width: self.reelWidth(),
+                            height: self.bounds.height)
+      let generator = ReelImageGenerator(asset)
+      let reelImage = generator.reelImage(size: reelSize, frameWidth: self.reelFrameWidth * UIScreen.main.scale)
+
+      DispatchQueue.main.async { [unowned self] in
+        self.indicatorView.stopAnimating()
+        self.reelImageView.image = reelImage
+        self.reelImageView.frame = CGRect(origin: .zero, size: viewSize)
+        self.reelImageView.contentMode = .scaleAspectFill
+        self.scrollView.contentSize = viewSize
+        self.moveHandle(self.frame.width)
+      }
+    }
   }
   
   
   func panHandle(_ sender: UIPanGestureRecognizer) {
-    var x = sender.location(in: self).x
-    let minX = (CGFloat(minSec) * pixPerSec) + rangeRectangleMargin
-    let maxX = self.bounds.width - rangeRectangleMargin - rangeHandleWidth
-
-    x = x < minX ? minX : x
-    x = x > maxX ? maxX : x
-
-    rangeHandle.frame.origin.x = x
+    moveHandle(sender.location(in: self).x)
+  }
+  
+  private func moveHandle(_ x: CGFloat) {
+    var distX = x
+    let minX = (CGFloat(minSec) * pxPerSec) + rangeRectangleMargin
+    let maxX = min(self.bounds.width - rangeRectangleMargin - rangeHandleWidth,
+                   rangeRectangleMargin + reelWidth())
+    distX = distX < minX ? minX : distX
+    distX = distX > maxX ? maxX : distX
+    rangeHandle.frame.origin.x = distX
     let rect = CGRect.init(x: rangeRectangleMargin,
                            y: CGFloat(0),
-                           width: x - rangeRectangleMargin,
+                           width: distX - rangeRectangleMargin,
                            height: self.bounds.height)
     rangeRectangleView.frame = rect
-    
+    scrollView.contentInset = UIEdgeInsetsMake(0, rangeRectangleMargin, 0, self.bounds.width - distX)
+  }
+  
+  private func reelWidth() -> CGFloat {
+    guard let asset = asset else { return 0 }
+    return CGFloat(asset.duration.seconds) * pxPerSec
   }
   
 }
@@ -159,8 +204,8 @@ class ReelImageGenerator {
     self.asset = asset
     generator = AVAssetImageGenerator(asset: asset)
     generator.appliesPreferredTrackTransform = true
-    generator.requestedTimeToleranceAfter = kCMTimeZero;
-    generator.requestedTimeToleranceBefore = kCMTimeZero;
+//    generator.requestedTimeToleranceAfter = kCMTimeZero;
+//    generator.requestedTimeToleranceBefore = kCMTimeZero;
   }
 
   func reelImage(size: CGSize, frameWidth: CGFloat) -> UIImage {
