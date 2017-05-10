@@ -28,6 +28,14 @@
                                     <constraint firstAttribute="height" constant="70" id="PWk-CF-Kc1"/>
                                 </constraints>
                             </view>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lHG-Yh-IGQ">
+                                <rect key="frame" x="165" y="318" width="44" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Select"/>
+                                <connections>
+                                    <action selector="selectVideo:" destination="BYZ-38-t0r" eventType="touchUpInside" id="rJs-xh-vhR"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -36,6 +44,10 @@
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="NvL-ye-1wA" secondAttribute="bottom" constant="30" id="kKV-0W-46E"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="rangeSelector" destination="NvL-ye-1wA" id="78r-48-822"/>
+                        <outlet property="selectButton" destination="lHG-Yh-IGQ" id="wRd-oE-qRR"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
