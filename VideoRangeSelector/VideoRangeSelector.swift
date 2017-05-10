@@ -37,8 +37,11 @@ class VideoRangeSelector: UIView {
   let secPerPx: CGFloat = 1 / 15
   let minSec: Float = 3
   
+  
+  // MARK: Variables
   public var rangeBegin: CMTime?
   public var rangeEnd: CMTime?
+  fileprivate var InfLoopWatchDogCounter:Int = 0
   
   public var asset: AVAsset? {
     willSet {
@@ -46,7 +49,7 @@ class VideoRangeSelector: UIView {
     }
     didSet {
       setAsset()
-      play()
+      setPlayer()
     }
   }
   
@@ -140,21 +143,30 @@ class VideoRangeSelector: UIView {
         self.reelImageView.contentMode = .scaleAspectFill
         self.scrollView.contentSize = viewSize
         self.moveHandle(self.frame.width)
+        self.player?.play()
       }
     }
   }
   
-  func play() {
+  func setPlayer() {
     guard let asset = asset else { return }
     guard let previewView = previewView else { return }
     
     player = AVPlayer(playerItem: AVPlayerItem(asset: asset))
     previewView.playerLayer.player = player
-    player?.play()
+    
+    // watch for loop
+    let time : CMTime = CMTimeMakeWithSeconds(0.03, Int32(NSEC_PER_SEC))
+    player?.addPeriodicTimeObserver(forInterval: time, queue: nil) { [unowned self] (time) -> Void in
+      guard let player = self.player else { return }
+      guard player.rate != 0 else { return }
+      self.watchForLoop(player.currentTime())
+    }
   }
   
-  
   func panHandle(_ sender: UIPanGestureRecognizer) {
+    if sender.state == .began { player?.pause() }
+    if sender.state == .ended { player?.play() }
     moveHandle(sender.location(in: self).x)
   }
   
@@ -172,6 +184,10 @@ class VideoRangeSelector: UIView {
                            height: self.bounds.height)
     rangeRectangleView.frame = rect
     scrollView.contentInset = UIEdgeInsetsMake(0, rangeRectangleMargin, 0, self.bounds.width - distX)
+    
+    let endX = (scrollView.contentOffset.x + scrollView.contentInset.left) + rect.width
+    rangeEnd = cmTime(x: endX)
+    seek(rangeEnd)
   }
   
   fileprivate func reelWidth() -> CGFloat {
@@ -179,11 +195,29 @@ class VideoRangeSelector: UIView {
     return CGFloat(asset.duration.seconds) * pxPerSec
   }
   
-  fileprivate func seek(_ x: CGFloat) {
+  fileprivate func cmTime(x: CGFloat) -> CMTime {
+    return CMTimeMakeWithSeconds(Double(x * secPerPx), Int32(NSEC_PER_SEC))
+  }
+  
+  fileprivate func seek(_ time:CMTime?) {
+    guard let time = time else { return }
     guard let _ = asset else { return }
-    let time = CMTimeMakeWithSeconds(Double(x * secPerPx), Int32(NSEC_PER_SEC))
-    
     player?.seek(to: time, toleranceBefore: kCMTimeZero, toleranceAfter:  kCMTimeZero)
+  }
+  
+  fileprivate func watchForLoop(_ time: CMTime) {
+    guard let rangeBegin = rangeBegin else { return }
+    guard let rangeEnd = rangeEnd else { return }
+    guard InfLoopWatchDogCounter < 10 else {
+      InfLoopWatchDogCounter = 0
+      return
+    }
+
+    print(InfLoopWatchDogCounter, time.seconds)
+    if time < rangeBegin || time >= rangeEnd {
+      InfLoopWatchDogCounter += 1
+      seek(rangeBegin)
+    }
   }
   
 }
@@ -194,8 +228,8 @@ extension VideoRangeSelector: UIScrollViewDelegate {
   func scrollViewDidScroll(_ scrollView: UIScrollView) {
     var x = scrollView.contentOffset.x + scrollView.contentInset.left
     x = x < 0 ? 0 : x
-    print(x)
-    seek(x)
+    rangeBegin = cmTime(x: x)
+    seek(rangeBegin)
   }
   
   func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
