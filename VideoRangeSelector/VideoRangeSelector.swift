@@ -41,7 +41,6 @@ class VideoRangeSelector: UIView {
   // MARK: Variables
   public var rangeBegin: CMTime?
   public var rangeEnd: CMTime?
-  fileprivate var InfLoopWatchDogCounter:Int = 0
   
   public var asset: AVAsset? {
     willSet {
@@ -208,16 +207,11 @@ class VideoRangeSelector: UIView {
   fileprivate func watchForLoop(_ time: CMTime) {
     guard let rangeBegin = rangeBegin else { return }
     guard let rangeEnd = rangeEnd else { return }
-    guard InfLoopWatchDogCounter < 10 else {
-      InfLoopWatchDogCounter = 0
-      return
-    }
 
-    print(InfLoopWatchDogCounter, time.seconds)
-    if time < rangeBegin || time >= rangeEnd {
-      InfLoopWatchDogCounter += 1
+    if time >= rangeEnd {
       seek(rangeBegin)
     }
+
   }
   
 }
@@ -229,6 +223,7 @@ extension VideoRangeSelector: UIScrollViewDelegate {
     var x = scrollView.contentOffset.x + scrollView.contentInset.left
     x = x < 0 ? 0 : x
     rangeBegin = cmTime(x: x)
+    rangeEnd = cmTime(x: x + rangeRectangleView.bounds.width)
     seek(rangeBegin)
   }
   
